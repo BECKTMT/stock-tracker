@@ -1,0 +1,14 @@
+import { readFileSync } from "fs";
+import { parseWorkbook } from "./src/lib/importer.js";
+const buf = readFileSync("/mnt/user-data/uploads/Stocks_Tracker_Moomoo_FIFO_Master_V5.xlsm");
+const r = parseWorkbook(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+console.log("Base ccy:", r.baseCurrency);
+console.log("FX:", r.fxRates);
+console.log("Start date:", r.startDate);
+console.log("Positions:", r.positions.length);
+console.log("OPEN:", r.positions.filter(p=>p.status==="OPEN").length, "CLOSED:", r.positions.filter(p=>p.status==="CLOSED").length);
+console.log("\nFirst 5 positions:");
+r.positions.slice(0,5).forEach(p=>console.log(`  ${p.ticker} (${p.tradeCcy}) ${p.shares} sh @ ${p.avgCost} px=${p.currentPrice} [${p.status}]`));
+console.log("\nTicker sheets parsed:", Object.keys(r.tickerSheets).length);
+console.log("Warnings:", r.warnings.length);
+r.warnings.slice(0,5).forEach(w=>console.log("  ⚠ "+w));

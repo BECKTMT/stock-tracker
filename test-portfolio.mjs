@@ -1,0 +1,17 @@
+import { readFileSync } from "fs";
+import { parseWorkbook } from "./src/lib/importer.js";
+import { computePortfolio } from "./src/lib/portfolio.js";
+const buf = readFileSync("/mnt/user-data/uploads/Stocks_Tracker_Moomoo_FIFO_Master_V5.xlsm");
+const r = parseWorkbook(buf.buffer.slice(buf.byteOffset, buf.byteOffset+buf.byteLength));
+const p = computePortfolio(r.positions, r.fxRates, r.baseCurrency, r.startDate);
+const k = p.kpis;
+const f = n => "S$"+n.toLocaleString(undefined,{maximumFractionDigits:0});
+console.log("Portfolio Value:", f(k.portfolioValue), "(sheet ~44,881)");
+console.log("Unrealized P/L: ", f(k.unrealizedPL), "(sheet ~-1,690)");
+console.log("Realized P/L:   ", f(k.realizedPL), "(sheet ~21,257)");
+console.log("Dividends:      ", f(k.dividends), "(sheet ~509)");
+console.log("Assets OPEN:", k.numAssets, "Gaining:", k.numGaining, "Losing:", k.numLosing, "(sheet 15/5/10)");
+console.log("Exposure:", Object.fromEntries(Object.entries(p.exposure).map(([k,v])=>[k,f(v)])));
+console.log("\nTop holdings:", p.topHoldings.map(h=>h.ticker).join(", "));
+console.log("Best:", p.bestPerformers.map(h=>`${h.ticker} ${(h.returnPct*100).toFixed(1)}%`).join(", "));
+console.log("Worst:", p.worstPerformers.map(h=>`${h.ticker} ${(h.returnPct*100).toFixed(1)}%`).join(", "));
